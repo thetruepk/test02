@@ -10,6 +10,7 @@ import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.generator.BlockPopulator;
 import org.bukkit.generator.ChunkGenerator;
+import org.bukkit.util.noise.SimplexOctaveGenerator;
 
 public class PlotsGenerator extends ChunkGenerator {
 	
@@ -109,29 +110,16 @@ public class PlotsGenerator extends ChunkGenerator {
 		int worldChunkX = chunkX * 16;
 		int worldChunkZ = chunkZ * 16;
 		
+		Random rand = new Random(world.getSeed());
+		SimplexOctaveGenerator octave = new SimplexOctaveGenerator(rand, 12);
+		octave.setScale(1 /34.0);
+		
 		for (int x = 0; x < 16; ++x){
 			for (int z = 0; z < 16; ++z){
-				this.setBlockAt(chunk, x, 0, z, this.bedId);
-				
-				for (int y = 1; y < this.plotHeight; ++y){
-					this.setBlockAt(chunk, x, y, z, this.baseId);
-				}
-				
-				if (this.isGateBlock(worldChunkX + x, worldChunkZ + z) || this.isPathBlock(worldChunkX + x, worldChunkZ + z)){
-					this.setBlockAt(chunk, x, this.plotHeight, z, this.hiddenId);
-					this.setBlockAt(chunk, x, this.plotHeight + 1, z, this.pathId);
-					
-					biomes.setBiome(x, z, this.pathBiome);
-				}else if (this.isWallBlock(worldChunkX + x, worldChunkZ + z)){
-					this.setBlockAt(chunk, x, this.plotHeight, z, (byte) ((this.surfaceId == Material.GRASS.getId()) ? Material.DIRT.getId() : this.surfaceId));
-					this.setBlockAt(chunk, x, this.plotHeight + 1, z, this.wallLowerId);
-					this.setBlockAt(chunk, x, this.plotHeight + 2, z, this.wallUpperId);
-					
-					biomes.setBiome(x, z, this.pathBiome);
-				}else{
-					this.setBlockAt(chunk, x, this.plotHeight, z, this.surfaceId);
-					
-					biomes.setBiome(x, z, this.plotBiome);
+				this.setBlockAt(chunk, x, 0, z, this.bedId); 
+				double noise = octave.noise(worldChunkX + x, worldChunkZ +z, 0.5, 0.5) * 12;
+				for(int y = 0; y <(int)noise; ++y){
+					this.setBlockAt(chunk, x, y, z, (byte) Material.GRASS.getId());
 				}
 			}
 		}
