@@ -6,6 +6,7 @@ import java.util.Random;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.TreeType;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.generator.BlockPopulator;
@@ -106,20 +107,32 @@ public class PlotsGenerator extends ChunkGenerator {
 	@Override
 	public byte[][] generateBlockSections(World world, Random random, int chunkX, int chunkZ, BiomeGrid biomes){
 		byte[][] chunk = new byte[(int) Math.ceil((this.plotHeight + 2.0d) / 16)][4096];
+		Random rand = new Random(world.getSeed());
+		SimplexOctaveGenerator octave = new SimplexOctaveGenerator(rand, 12);
 		
 		int worldChunkX = chunkX * 16;
 		int worldChunkZ = chunkZ * 16;
-		
-		Random rand = new Random(world.getSeed());
-		SimplexOctaveGenerator octave = new SimplexOctaveGenerator(rand, 12);
+
+	
+	
 		octave.setScale(1 /34.0);
-		
+		world.setSpawnLocation(0, 0, 0);
+		Location loc= world.getSpawnLocation();
+		this.setBlockAt(chunk, 0, 0, 0, (byte) Material.GRASS.getId());
 		for (int x = 0; x < 16; ++x){
 			for (int z = 0; z < 16; ++z){
-				this.setBlockAt(chunk, x, 0, z, this.bedId); 
 				double noise = octave.noise(worldChunkX + x, worldChunkZ +z, 0.5, 0.5) * 12;
+				loc.setX(x + noise );
+				loc.setZ(z + noise);
+				world.generateTree(loc, TreeType.JUNGLE);
+				//this.setBlockAt(chunk, x, 0, z, this.bedId); 
+				
 				for(int y = 0; y <(int)noise; ++y){
+					loc.setY(y + noise);
+					world.generateTree(loc, TreeType.JUNGLE);
 					this.setBlockAt(chunk, x, y, z, (byte) Material.GRASS.getId());
+				this.setBlockAt(chunk, (int) (x/noise), (int) noise%8, z, (byte) Material.LONG_GRASS.getId());
+					
 				}
 			}
 		}
